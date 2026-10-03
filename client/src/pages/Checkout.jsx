@@ -5,6 +5,9 @@ import { useCart } from '../context/CartContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { formatINR } from '../utils/format.js';
 
+const PINCODE_PATTERN = /^[1-9]\d{5}$/;
+const PINCODE_ERROR = 'Enter a valid 6-digit pincode that does not start with 0.';
+
 export default function Checkout() {
   const { items, totalPrice, clearCart } = useCart();
   const { user } = useAuth();
@@ -14,13 +17,23 @@ export default function Checkout() {
   );
   const [paymentMethod, setPaymentMethod] = useState('COD');
   const [error, setError] = useState('');
+  const [pincodeError, setPincodeError] = useState('');
   const [placing, setPlacing] = useState(false);
 
-  const update = (key) => (e) => setAddress((a) => ({ ...a, [key]: e.target.value }));
+  const update = (key) => (e) => {
+    const { value } = e.target;
+    setAddress((a) => ({ ...a, [key]: value }));
+    if (key === 'pincode') {
+      setPincodeError(PINCODE_PATTERN.test(value) ? '' : PINCODE_ERROR);
+    }
+  };
 
-  // TODO: no validation for pincode format (6 digits) - see issue tracker.
   const placeOrder = async (e) => {
     e.preventDefault();
+    if (!PINCODE_PATTERN.test(address.pincode)) {
+      setPincodeError(PINCODE_ERROR);
+      return;
+    }
     setPlacing(true);
     setError('');
     try {
@@ -47,7 +60,22 @@ export default function Checkout() {
         <input required placeholder="Address line" value={address.line1} onChange={update('line1')} />
         <input required placeholder="City" value={address.city} onChange={update('city')} />
         <input required placeholder="State" value={address.state} onChange={update('state')} />
-        <input required placeholder="Pincode" value={address.pincode} onChange={update('pincode')} />
+        <input
+          required
+          type="text"
+          inputMode="numeric"
+          pattern="[1-9][0-9]{5}"
+          placeholder="Pincode"
+          value={address.pincode}
+          onChange={update('pincode')}
+          onInvalid={(e) => {
+            e.preventDefault();
+            setPincodeError(PINCODE_ERROR);
+          }}
+          aria-invalid={Boolean(pincodeError)}
+          aria-describedby={pincodeError ? 'pincode-error' : undefined}
+        />
+        {pincodeError && <p id="pincode-error" className="error">{pincodeError}</p>}
 
         <label>Payment method</label>
         <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
