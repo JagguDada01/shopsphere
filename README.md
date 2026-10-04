@@ -12,6 +12,20 @@
 - 📜 Order history for customers
 - 🛠️ Admin panel: add / edit / delete products, update order status
 
+## 📸 Screenshots
+
+| Home | Product detail |
+| ---- | -------------- |
+| ![ShopSphere home page with product search, filters, and product cards](./docs/screenshots/home.jpg) | ![Running Shoes product detail page with stock and add-to-cart controls](./docs/screenshots/product-detail.jpg) |
+
+| Cart | Checkout |
+| ---- | -------- |
+| ![Cart page with item quantity controls and checkout summary](./docs/screenshots/cart.jpg) | ![Checkout page with shipping-address and payment fields](./docs/screenshots/checkout.jpg) |
+
+| Admin products |
+| -------------- |
+| ![Admin products page with product form and management table](./docs/screenshots/admin.jpg) |
+
 ## 🧱 Tech stack
 
 | Layer    | Tech                                   |
