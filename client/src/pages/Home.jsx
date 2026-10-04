@@ -9,18 +9,26 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filters, setFilters] = useState({ search: '', category: '', sort: 'newest' });
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
 
   useEffect(() => {
-    // NOTE: this fires a request on every keystroke - see "Debounce search" issue.
     setLoading(true);
+    setError('');
     api
-      .get('/products', { params: filters })
-      .then(({ data }) => setProducts(data))
+      .get('/products', { params: { ...filters, page, limit: 12 } })
+      .then(({ data }) => {
+        setProducts(data.products);
+        setPagination({ page: data.page, totalPages: data.totalPages, total: data.total });
+      })
       .catch((err) => setError(getErrorMessage(err)))
       .finally(() => setLoading(false));
-  }, [filters]);
+  }, [filters, page]);
 
-  const update = (key) => (e) => setFilters((f) => ({ ...f, [key]: e.target.value }));
+  const update = (key) => (e) => {
+    setFilters((f) => ({ ...f, [key]: e.target.value }));
+    setPage(1);
+  };
 
   return (
     <section>
@@ -56,6 +64,25 @@ export default function Home() {
             <ProductCard key={p._id} product={p} />
           ))}
         </div>
+      )}
+      {pagination.totalPages > 1 && (
+        <nav className="pagination" aria-label="Product pagination">
+          <button
+            className="btn btn-ghost"
+            disabled={pagination.page === 1}
+            onClick={() => setPage((currentPage) => currentPage - 1)}
+          >
+            Previous
+          </button>
+          <span className="muted">Page {pagination.page} of {pagination.totalPages} ({pagination.total} products)</span>
+          <button
+            className="btn btn-ghost"
+            disabled={pagination.page === pagination.totalPages}
+            onClick={() => setPage((currentPage) => currentPage + 1)}
+          >
+            Next
+          </button>
+        </nav>
       )}
     </section>
   );
