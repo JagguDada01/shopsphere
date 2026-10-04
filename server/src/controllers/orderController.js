@@ -11,34 +11,54 @@ export const createOrder = asyncHandler(async (req, res) => {
     throw new Error('Order must contain at least one item');
   }
 
-  // Check that every product exists and has enough stock
-  for (const item of items) {
-    const product = await Product.findById(item.product);
-    if (!product) {
-      res.status(404);
-      throw new Error(`Product not found: ${item.product}`);
+  // Reserve stock atomically so concurrent orders cannot oversell a product.
+  const reservedItems = [];
+
+  try {
+    for (const item of items) {
+      if (!Number.isInteger(item.quantity) || item.quantity < 1) {
+        res.status(400);
+        throw new Error('Item quantity must be at least 1');
+      }
+
+      const product = await Product.findById(item.product);
+      if (!product) {
+        res.status(404);
+        throw new Error(`Product not found: ${item.product}`);
+      }
+
+      const update = await Product.updateOne(
+        { _id: product._id, stock: { $gte: item.quantity } },
+        { $inc: { stock: -item.quantity } }
+      );
+      if (update.modifiedCount !== 1) {
+        res.status(400);
+        throw new Error(`Not enough stock for ${product.name}`);
+      }
+
+      reservedItems.push({ product: product._id, quantity: item.quantity });
     }
-    if (product.stock < item.quantity) {
-      res.status(400);
-      throw new Error(`Not enough stock for ${product.name}`);
-    }
+
+    // TODO: total is currently calculated from prices sent by the client.
+    // This should use prices from the database instead (see issue tracker).
+    const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const order = await Order.create({
+      user: req.user._id,
+      items,
+      shippingAddress,
+      paymentMethod,
+      totalAmount,
+    });
+
+    res.status(201).json(order);
+  } catch (err) {
+    await Promise.all(
+      reservedItems.map(({ product, quantity }) =>
+        Product.updateOne({ _id: product }, { $inc: { stock: quantity } })
+      )
+    );
+    throw err;
   }
-
-  // TODO: total is currently calculated from prices sent by the client.
-  // This should use prices from the database instead (see issue tracker).
-  const totalAmount = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-
-  // TODO: stock is not reduced after an order is placed.
-
-  const order = await Order.create({
-    user: req.user._id,
-    items,
-    shippingAddress,
-    paymentMethod,
-    totalAmount,
-  });
-
-  res.status(201).json(order);
 });
 
 // GET /api/orders/mine
