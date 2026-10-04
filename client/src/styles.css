@@ -8,7 +8,23 @@
   --danger: #d6334b;
   --success: #1f9d55;
   --border: #e4e4ee;
+  --button-text: #ffffff;
+  --tag-bg: #efeafd;
   --radius: 10px;
+}
+
+[data-theme="dark"] {
+  --bg: #14131a;
+  --surface: #201f28;
+  --text: #f4f2fa;
+  --muted: #c5c0d4;
+  --primary: #b4a2ff;
+  --primary-dark: #d0c4ff;
+  --danger: #ff7b91;
+  --success: #62dc92;
+  --border: #3b384b;
+  --button-text: #1c1c28;
+  --tag-bg: #332d4c;
 }
 
 * { box-sizing: border-box; }
@@ -36,7 +52,7 @@ img { max-width: 100%; display: block; }
 
 .btn {
   display: inline-block; padding: 9px 16px; border: none; border-radius: var(--radius);
-  background: var(--primary); color: #fff !important; cursor: pointer; font-size: 0.95rem;
+  background: var(--primary); color: var(--button-text) !important; cursor: pointer; font-size: 0.95rem;
 }
 .btn:hover { background: var(--primary-dark); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -63,7 +79,7 @@ textarea { min-height: 80px; }
 .product-name { color: var(--text); font-weight: 600; }
 .tag {
   align-self: flex-start; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;
-  background: #efeafd; color: var(--primary); padding: 2px 8px; border-radius: 999px;
+  background: var(--tag-bg); color: var(--primary); padding: 2px 8px; border-radius: 999px;
 }
 
 .row { display: flex; gap: 10px; align-items: center; }
